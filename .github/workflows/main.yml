@@ -1,0 +1,66 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js (React)
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install React dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build React app
+        working-directory: ./frontend
+        run: npm run build
+
+      - name: Setup Node.js (Express)
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Install Express dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Run Express tests
+        working-directory: ./backend
+        run: npm test
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]')
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Add your deployment steps here
+      # For example, deploying both React frontend and Express backend to a server
+
+      # - name: Deploy to Heroku
+      #   uses: akhileshns/heroku-deploy@v3.12.12
+      #   with:
+      #     heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+      #     heroku_app_name: 'your-heroku-app-name'
+      #     heroku_email: 'your-heroku-email'
+      #     buildpack: 'mars/create-react-app'
+
+      # - name: Configure Heroku buildpack for Express
+      #   run: heroku buildpacks:add --index 1 heroku/nodejs
